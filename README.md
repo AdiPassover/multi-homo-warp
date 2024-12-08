@@ -2,6 +2,10 @@
 
 This repository is our implementation of the paper, Parallax-tolerant Image Stitching via Segmentation-based Multi-homography Warping. If you use any code or data from our work, please cite our paper.
 
+### Pipeline
+![Pipeline](pipeline.png)
+
+
 ### Usage
 
 1. Download the code, add images and corresponding SAM results in the folder "Imgs" in the main path and run the "main_MHW.m".
