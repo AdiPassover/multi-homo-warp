@@ -1,6 +1,7 @@
 ## Parallax-tolerant Image Stitching via Segmentation-based Multi-homography Warping
 
 <center>Tianli Liao<sup>1</sup>, Ce Wang<sup>2</sup>, Lei Li<sup>1</sup>, Guangen Liu<sup>1</sup>, Nan Li<sup>3*</sup></center>
+
 <center><sup>1</sup>Henan University of Technology, <sup>2</sup>Sun Yat-sen University, <sup>3</sup>Shenzhen University</center>
 
 <br>
