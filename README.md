@@ -15,14 +15,13 @@ Download the code, add images and corresponding SAM results in the folder "Imgs"
 
 ### Citation
 ```
-@article{Liao2024Parallax,
+@article{Liao2025Parallax,
 title = {Parallax-tolerant image stitching via segmentation-guided multi-homography warping},
 author = {Tianli Liao and Ce Wang and Lei Li and Guangen Liu and Nan Li},
 journal = {Signal Processing},
+volume = {230},
 pages = {109860},
-year = {2024},
-issn = {0165-1684},
-doi = {https://doi.org/10.1016/j.sigpro.2024.109860},
+year = {2025},
 }
 ```
 
