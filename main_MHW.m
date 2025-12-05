@@ -1,18 +1,12 @@
 clear; clc; close all; 
-%% Setup VLFeat toolbox.
 %----------------------
 addpath('modelspecific'); 
 addpath('multi-model fitting\')
 addpath('multi-model fitting\bin\');
 addpath('multi-model fitting\cplus_files\');
 addpath('multi-model fitting\GCO_files\');
-run vlfeat-0.9.21/toolbox/vl_setup;
 
 % setup parameters
-% Parameters of SIFT detection
-parameters.peakthresh=0;
-parameters.edgethresh=500;
-
 parameters.thDist=0.05;  % distance threshold
 
 %%---figure display or not
@@ -36,7 +30,7 @@ img2=im2double(imread(path2));  % reference image
 labels1=double(imread([imgpath, 'segmentation_3_l.png']));
 
 %% feature detection and matching, multi-homography initialization
-[pts1, pts2]=siftMatch(img1, img2, parameters);
+[pts1, pts2]=siftMatch(img1, img2);
 
 [matches_1, matches_2]=fundamentalRANSAC(pts1, pts2, parameters);
 [init_H, ~]=multiHomoGeneraton(matches_1, matches_2);
