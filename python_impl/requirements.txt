@@ -2,3 +2,5 @@ opencv-python
 numpy
 scipy
 gco-python
+ultralytics
+scikit-image

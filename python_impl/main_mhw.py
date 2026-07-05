@@ -8,10 +8,25 @@ from sift_match import sift_match
 from fundamental_ransac import fundamental_ransac
 from multi_homo_gen import multi_homo_generation
 from multi_homo_fit import multi_homo_fitting
+from segmentation import run_segmentation
 from sam_mask_labeling import sam_mask_labeling
 from sam_backward_mapping import sam_backward_mapping
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Multi-homography Stitching Pipeline")
+    parser.add_argument('--path1', type=str, default=None, help="Path to left image")
+    parser.add_argument('--path2', type=str, default=None, help="Path to right image")
+    parser.add_argument('--model', type=str, default=None, 
+                        choices=['sam2', 'fast-sam', 'mobile-sam', 'yolov8-seg', 'yolo11-seg', 'felzenszwalb', 'slic'],
+                        help="Segmentation model to run. If None, uses existing label path.")
+    parser.add_argument('--label-path', type=str, default=None, help="Path to load/save the segmentation map")
+    parser.add_argument('--force-segmentation', action='store_true', help="Force running segmentation model even if label file exists")
+    
+    # We parse args. To prevent throwing an error if this script is called by other tools with unsupported arguments,
+    # we can use parse_known_args.
+    args, unknown = parser.parse_known_args()
+
     parameters = {
         'thDist': 0.05,
         'pixel_thDist': 3.0,
@@ -24,8 +39,8 @@ def main():
     }
     
     imgpath = '../Imgs/'
-    path1 = os.path.join(imgpath, '3_l.jpg')
-    path2 = os.path.join(imgpath, '3_r.jpg')
+    path1 = args.path1 if args.path1 else os.path.join(imgpath, '3_l.jpg')
+    path2 = args.path2 if args.path2 else os.path.join(imgpath, '3_r.jpg')
     
     if not os.path.exists(path1) or not os.path.exists(path2):
         print(f"Error: Images not found at {path1} or {path2}.")
@@ -39,14 +54,30 @@ def main():
 
     start_time = time.perf_counter()
 
-    label_path = os.path.join(imgpath, 'segmentation_3_l.png')
-    if os.path.exists(label_path):
+    label_path = args.label_path if args.label_path else os.path.join(imgpath, 'segmentation_3_l.png')
+    
+    run_seg = False
+    if args.force_segmentation:
+        run_seg = True
+    elif args.model is not None:
+        run_seg = True
+    elif not os.path.exists(label_path):
+        print(f"Segmentation file {label_path} not found.")
+        print("Automatically running 'slic' segmentation model as fallback...")
+        args.model = 'slic'
+        run_seg = True
+        
+    if run_seg:
+        model = args.model if args.model else 'slic'
+        print(f"Generating segmentation map for {path1} using model '{model}'...")
+        labels1 = run_segmentation(path1, label_path, model)
+    else:
+        print(f"Loading existing segmentation map from {label_path}...")
         labels1 = cv2.imread(label_path, cv2.IMREAD_UNCHANGED)
         if labels1 is not None and len(labels1.shape) == 3:
             labels1 = labels1[:,:,0] # just need 1 channel
-    else:
-        labels1 = np.zeros(img1.shape[:2], dtype=np.int32)
-        print(f"Warning: Segmentation not found at {label_path}")
+        if labels1 is None:
+            labels1 = np.zeros(img1.shape[:2], dtype=np.int32)
 
     # Step 1: Feature matching
     print("Extracting and matching SIFT features...")
