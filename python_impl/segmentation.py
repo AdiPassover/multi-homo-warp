@@ -182,15 +182,49 @@ def run_segmentation(image_path: str, output_path: str, model_choice: Segmentati
     
     return labels
 
+
+def batch_segment(folder_path: str, output_folder: str, model_choice: SegmentationModel, suffix: str, **kwargs):
+    """
+    Batch process all images in a folder for segmentation.
+
+    Parameters:
+    -----------
+    folder_path : str
+        Path to the folder containing input images.
+    output_folder : str
+        Path to the folder where segmentation label images will be saved.
+    model_choice : SegmentationModel
+        Choice of segmentation model or algorithm.
+    **kwargs :
+        Additional arguments to pass to the models/algorithms.
+    """
+    if not os.path.exists(folder_path):
+        raise FileNotFoundError(f"Input folder not found: {folder_path}")
+
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder, exist_ok=True)
+
+    image_extensions = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff')
+
+    for filename in os.listdir(folder_path):
+        if filename.lower().endswith(image_extensions):
+            image_path = os.path.join(folder_path, filename)
+            output_filename = os.path.splitext(filename)[0] + suffix + '.png'
+            output_path = os.path.join(output_folder, output_filename)
+            print(f"Processing {image_path}...")
+            run_segmentation(image_path, output_path, model_choice, **kwargs)
+
+
 if __name__ == '__main__':
     import argparse
     
     parser = argparse.ArgumentParser(description="Image Segmentation Module for MHW")
-    parser.add_argument('--image', type=str, required=True, help="Path to input image")
-    parser.add_argument('--output', type=str, required=True, help="Path to save segmentation label image")
+    parser.add_argument('--image', type=str, default=None, help="Path to input image")
+    parser.add_argument('--output', type=str, default=None, help="Path to save segmentation label image")
     parser.add_argument('--model', type=str, default='sam-2',
                         choices=['sam-2', 'fast-sam', 'mobile-sam', 'yolov8-seg', 'yolo11-seg', 'felzenszwalb', 'slic'],
                         help="Segmentation model or algorithm choice (default: sam2)")
+    parser.add_argument('--folder', type=str, default=None, help="Path to folder for batch processing")
     
     # Deep Learning options
     parser.add_argument('--checkpoint', type=str, default=None, help="Custom model checkpoint weight file")
@@ -206,6 +240,8 @@ if __name__ == '__main__':
     # SLIC parameters
     parser.add_argument('--n-segments', type=int, default=100, help="SLIC approximate number of segments")
     parser.add_argument('--compactness', type=float, default=10.0, help="SLIC compactness parameter")
+
+    parser.add_argument('--batch-suffix', type=str, default='_segmentation', help="Suffix for output segmentation files in batch mode")
     
     args = parser.parse_args()
     
@@ -223,5 +259,13 @@ if __name__ == '__main__':
     extra_args['min_size'] = args.min_size
     extra_args['n_segments'] = args.n_segments
     extra_args['compactness'] = args.compactness
-    
-    run_segmentation(args.image, args.output, SegmentationModel.from_str(args.model), **extra_args)
+
+
+    if args.image and args.output:
+        run_segmentation(args.image, args.output, SegmentationModel.from_str(args.model), **extra_args)
+    elif args.folder:
+        if not args.output:
+            args.output = args.folder
+        batch_segment(args.folder, args.output, SegmentationModel.from_str(args.model), args.batch_suffix, **extra_args)
+    else:
+        raise ValueError("Please provide either --image and --output for single image segmentation, or --folder for batch processing.")

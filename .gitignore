@@ -1,1 +1,14 @@
 python_impl/err.txt
+
+
+# Ignore all images and videos
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.tiff
+*.gif
+*.mp4
+*.avi
+*.mov
+*.mkv
