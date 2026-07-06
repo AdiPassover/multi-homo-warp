@@ -22,6 +22,7 @@ def main():
                         help="Segmentation model to run. If None, uses existing label path.")
     parser.add_argument('--label-path', type=str, default=None, help="Path to load/save the segmentation map")
     parser.add_argument('--force-segmentation', action='store_true', help="Force running segmentation model even if label file exists")
+    parser.add_argument('--eval-metrics', action='store_true', help="Enable evaluation of PSNR, SSIM, and LPIPS metrics on overlapping region")
     
     # We parse args. To prevent throwing an error if this script is called by other tools with unsupported arguments,
     # we can use parse_known_args.
@@ -103,10 +104,21 @@ def main():
     
     # Step 6: Backward Mapping and Blending
     print("Warping and Blending...")
-    panorama, w_img1, w_img2, ssim, psnr = sam_backward_mapping(img1_double, img2_double, final_homos, final_labels1, overlapped_C)
+    panorama, w_img1, w_img2, mask1, mask2 = sam_backward_mapping(img1_double, img2_double, final_homos, final_labels1, overlapped_C)
 
     end_time = time.perf_counter()
     print(f"Execution time: {(end_time - start_time):.6f} seconds")
+    
+    if args.eval_metrics:
+        print("Calculating quality metrics on the overlapping region...")
+        from metrics import calculate_all_metrics
+        overlap_mask = mask1 & mask2
+        ssim, psnr, lpips = calculate_all_metrics(w_img1, w_img2, overlap_mask)
+        print("\n--- Overlapping Region Quality Metrics ---")
+        print(f"PSNR:  {psnr:.4f} dB")
+        print(f"SSIM:  {ssim:.4f}")
+        print(f"LPIPS: {lpips:.4f}")
+        print("-------------------------------------------\n")
     
     cv2.imwrite('panorama.jpg', (panorama * 255).astype(np.uint8))
     print("Saved panorama.jpg")

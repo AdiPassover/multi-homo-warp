@@ -79,4 +79,4 @@ def sam_backward_mapping(img1, img2, sam_H, labels, overlapped_C):
     from image_blending import image_blending
     panorama = image_blending(warped_img1, mask1, warped_img2, mask2, 'linear')
     
-    return panorama, warped_img1, warped_img2, 0, 0
+    return panorama, warped_img1, warped_img2, mask1, mask2
